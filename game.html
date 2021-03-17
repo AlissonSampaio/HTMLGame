@@ -8,8 +8,13 @@
     <script>
     var config = {
         type: Phaser.AUTO,
-        width: window.screen.width,
-        height: window.screen.height,
+        width: 1280,
+        height: 720,
+        parent: null,
+        // scale: {
+        // mode: Phaser.Scale.FIT,
+        // autoCenter: Phaser.Scale.CENTER_BOTH
+        // },
         physics: {
             default: 'arcade',
             arcade: {
@@ -21,42 +26,46 @@
             preload: preload,
             create: create,
             update: update
-        }
+        },
     };
     
     var game = new Phaser.Game(config);
 
     function preload ()
     {
-        this.load.image('sky', 'assets/sky.png');
+        this.load.image('sky', 'assets/ceuEstrelado.jpg');
         this.load.image('ground', 'assets/platform.png');
         this.load.image('star', 'assets/star.png');
         this.load.image('bomb', 'assets/bomba_ste.png');
         this.load.image('gameOver', 'assets/game_over_screen.jpg');
         this.load.spritesheet('dude', 
-            'assets/killua//killua_sprite.png',
-            { frameWidth: 33.7, frameHeight: 50 }
+            'assets/jotaro/jotaro_sprite.png',
+            { frameWidth: 24.94117647058824, frameHeight: 32 }
     );
     }
     let platforms, player, score = 0, scoreText, bombs;
     function create ()
     {
         //Background
-        this.add.image(400, 300, 'sky');
+        this.add.image(640, 360, 'sky');
 
         //Platform
         platforms = this.physics.add.staticGroup();
 
-        platforms.create(window.screen.width-400, window.screen.height-50, 'ground').setScale(10).refreshBody();
+        platforms.create(640, 750, 'ground').setScale(4).refreshBody();
 
-        platforms.create(600, 400, 'ground');
-        platforms.create(50, 250, 'ground');
+        platforms.create(1080, 400, 'ground');
+        platforms.create(100, 270, 'ground');
+        platforms.create(750, 580, 'ground');
+        platforms.create(350, 450, 'ground');
+        // platforms.create(720, 500, 'ground');
         platforms.create(750, 220, 'ground');
 
         //Player
         player = this.physics.add.sprite(100, 450, 'dude');
 
         player.setBounce(0.0);
+        player.setScale(2);
         player.setCollideWorldBounds(true);
 
         this.anims.create({
@@ -68,19 +77,19 @@
 
         this.anims.create({
             key: 'turn',
-            frames: [ { key: 'dude', frame: 18 } ],
+            frames: [ { key: 'dude', frame: 8 } ],
             frameRate: 20
         });
 
-        this.anims.create({
-            key: 'jump',
-            frames: [ { key: 'dude', frame: { start: 19 , end: 26 } } ],
-            frameRate: 1
-        });
+        // this.anims.create({
+        //     key: 'jump',
+        //     frames: [ { key: 'dude', frame: { start: 9 , end: 1 } } ],
+        //     frameRate: 1
+        // });
 
         this.anims.create({
             key: 'right',
-            frames: this.anims.generateFrameNumbers('dude', { start: 27 , end: 33 }),
+            frames: this.anims.generateFrameNumbers('dude', { start: 9 , end: 16 }),
             frameRate: 10,
             repeat: -1
         });
@@ -115,7 +124,7 @@
 
                 });
 
-                var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+                var x = (player.x < 640) ? Phaser.Math.Between(640, 1280) : Phaser.Math.Between(0, 640);
 
                 var bomb = bombs.create(x, 10, 'bomb');
                 bomb.setBounce(1);
@@ -125,7 +134,7 @@
             }
         }
         //Score
-        scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+        scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: 'white', fontSize:'50px' });
 
         //Bombs
         bombs = this.physics.add.group();
@@ -139,13 +148,27 @@
         
             player.setTint(0xff0000);
             player.anims.play('turn');
-            showGameOverScreen();
-            gameOver = true;
+            triggerGameOver();
+            // gameOver = true;
         }
 
-        function showGameOverScreen(){
+        //GameOver
+        function triggerGameOver() {
+            if(this.is_gameover) return;
+
+            this.is_gameover = true;
+
+            this.time.addEvent({
+                delay: 1500,
+                callback: this.showGameOverScreen,
+                callbackScope: this
+            })
+        }
+
+        function showGameOverScreen(){ 
             console.log("game over");
-            game.scene.add('gameOver',{x:400, y:300});
+            this.game.scene.add('gameOver',{x:400, y:300}, {score: this.score});
+            let panel = this.scene.get('GameOver');
         }
     }
        
@@ -177,7 +200,7 @@
         {   
             player.setVelocityY(-380);
 
-            player.anims.play('jump');
+            // player.anims.play('jump');
         }       
     }
     </script>
