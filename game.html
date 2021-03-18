@@ -49,7 +49,7 @@
             { frameWidth: 66.600, frameHeight: 50 }
     );
     }
-    let platforms, player, score = 0, scoreText, bombs, particulas;
+    let platforms, player, score = 0, scoreText, bombs,teste = 0;
     function create ()
     {
 
@@ -57,6 +57,8 @@
         this.add.image(640, 360, 'sky');
 
         particles = this.add.particles('fire');    
+        particles2 = this.add.particles('spark0');
+         
 
         //Platform
         platforms = this.physics.add.staticGroup();
@@ -128,6 +130,14 @@
 
             if(score >= 20) {
                 console.log("Ganhou");
+                var emitter = particles2.createEmitter({
+                speed: 100,
+                scale: { start: teste, end: 0 },
+                blendMode: 'ADD'
+                });
+                teste += 0.01;
+                emitter.startFollow(player);
+
                 // this.winPrize.visible= true;
             }
 
