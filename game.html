@@ -18,7 +18,7 @@
         physics: {
             default: 'arcade',
             arcade: {
-                gravity: { y: 400 },
+                gravity: { y: 1000 },
                 debug: false
             }
         },
@@ -34,13 +34,15 @@
     function preload ()
     {
         this.load.image('sky', 'assets/ceuNeve.jpg');
-        this.load.image('ground', 'assets/platform.png');
+        this.load.image('ground', 'assets/plataforma2.png');
+        this.load.image('groundBig', 'assets/plataformabig.png');
         this.load.image('star', 'assets/star.png');
         this.load.image('bomb', 'assets/bomba_ste.png');
         this.load.image('gameOver', 'assets/game_over_screen.jpg');
+        this.load.image('restartButton', 'assets/restartButton.png');
         this.load.spritesheet('dude', 
             'assets/killua/Kimoon.png',
-            { frameWidth: 66.600, frameHeight: 55 }
+            { frameWidth: 66.600, frameHeight: 50 }
     );
     }
     let platforms, player, score = 0, scoreText, bombs;
@@ -49,16 +51,16 @@
         //Background
         this.add.image(640, 360, 'sky');
 
+
         //Platform
         platforms = this.physics.add.staticGroup();
 
-        platforms.create(640, 750, 'ground').setScale(4).refreshBody();
+        platforms.create(640, 750, 'groundBig').setScale(3).refreshBody();
 
         platforms.create(1080, 400, 'ground');
         platforms.create(100, 270, 'ground');
         platforms.create(750, 580, 'ground');
         platforms.create(350, 450, 'ground');
-        // platforms.create(720, 500, 'ground');
         platforms.create(750, 220, 'ground');
 
         //Player
@@ -114,7 +116,11 @@
         {
             star.disableBody(true, true);
             score += 10;
-            scoreText.setText('Score: ' + score);
+            scoreText.setText('pontos: ' + score);
+
+            if(score >= 20) {
+                console.log("Ganhou");
+            }
 
             if (stars.countActive(true) === 0)
             {
@@ -134,7 +140,7 @@
             }
         }
         //Score
-        scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: 'white', fontSize:'50px' });
+        scoreText = this.add.text(16, 16, 'pontos: 0', { fontSize: '32px', fill: 'white', fontSize:'50px' });
 
         //Bombs
         bombs = this.physics.add.group();
@@ -144,12 +150,42 @@
         this.physics.add.collider(player, bombs, hitBomb, null, this);
 
         function hitBomb (player, bomb){
-            // this.physics.pause();
-        
+            this.gameOverScreen.visible = true;
+            this.continueButton.visible = true;
+
+            this.physics.pause();
             player.setTint(0xff0000);
-            player.anims.play('turn');
-            gameOver = true;
+            player.anims.play('turn');       
         }
+
+        createGameOverMessage = () => {
+            this.gameOverScreen = this.add.text(400,300, 'Game Over', {fontSize: '50px', fill: '#000'});
+            this.gameOverScreen.setOrigin(0.5);
+            this.gameOverScreen.visible = false;
+        }
+        
+        createRestartButton = (image) => {
+            this.continueButton = this.add.image(400,300, image); 
+            this.continueButton.y = 350;
+            this.continueButton.setScale(0.2);
+            this.continueButton.setOrigin(0.5);
+            this.continueButton.setInteractive();    
+            this.continueButton.on('pointerdown', () => {
+                score = 0;
+                this.registry.destroy()
+                this.events.off();
+                this.scene.restart();
+            });
+            this.continueButton.visible = false;
+        }
+
+        
+        //GameOver
+        createGameOverMessage();
+        
+        //Restart
+        createRestartButton('restartButton');
+
     }
        
     function update ()
@@ -159,13 +195,13 @@
         //Keyboard   
         if (cursors.left.isDown)
         {
-            player.setVelocityX(-200);
+            player.setVelocityX(-400);
 
             player.anims.play('left', true);
         }
         else if (cursors.right.isDown)
         {
-            player.setVelocityX(200);
+            player.setVelocityX(400);
 
             player.anims.play('right', true);
         }
@@ -178,7 +214,7 @@
 
         if (cursors.space.isDown && player.body.touching.down)
         {   
-            player.setVelocityY(-400);
+            player.setVelocityY(-650);
 
             // player.anims.play('jump');
         } 
