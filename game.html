@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser-arcade-physics.min.js"></script>
-    <title> Phaser Test </title>
+    <title>Jogalisson</title>
 </head>
 <body>
     <script>
@@ -40,17 +40,23 @@
         this.load.image('bomb', 'assets/bomba_ste.png');
         this.load.image('gameOver', 'assets/game_over_screen.jpg');
         this.load.image('restartButton', 'assets/restartButton.png');
+        this.load.image('winPrize', 'assets/sky.png');
+        this.load.image('fire', 'assets/particles/muzzleflash3.png');
+        this.load.image('spark0', 'assets/particles/blue.png');
+        this.load.image('spark1', 'assets/particles/red.png');
         this.load.spritesheet('dude', 
             'assets/killua/Kimoon.png',
             { frameWidth: 66.600, frameHeight: 50 }
     );
     }
-    let platforms, player, score = 0, scoreText, bombs;
+    let platforms, player, score = 0, scoreText, bombs, particulas;
     function create ()
     {
+
         //Background
         this.add.image(640, 360, 'sky');
 
+        particles = this.add.particles('fire');    
 
         //Platform
         platforms = this.physics.add.staticGroup();
@@ -120,6 +126,7 @@
 
             if(score >= 20) {
                 console.log("Ganhou");
+                // this.winPrize.visible= true;
             }
 
             if (stars.countActive(true) === 0)
@@ -150,20 +157,91 @@
         this.physics.add.collider(player, bombs, hitBomb, null, this);
 
         function hitBomb (player, bomb){
+
+            //explosion
+            particles.createEmitter({
+            alpha: { start: 10, end: 0 },
+            scale: { start: 0.5, end: 10 },
+            //tint: { start: 0xff945e, end: 0xff945e },
+            speed: 10,
+            accelerationY: -20,
+            angle: { min: -85, max: -95 },
+            rotate: { min: 0, max: 360 },
+            lifespan: { min: 1000, max: 1100 },
+            blendMode: 'ADD',
+            frequency: 110,
+            maxParticles: 16,
+            x: bomb.x,
+            y: bomb.y
+            });    
+
+            // //fireworks
+            // var p0 = new Phaser.Math.Vector2(200, 500);
+            // var p1 = new Phaser.Math.Vector2(200, 200);
+            // var p2 = new Phaser.Math.Vector2(600, 200);
+            // var p3 = new Phaser.Math.Vector2(600, 500);
+
+            // var curve = new Phaser.Curves.CubicBezier(p0, p1, p2, p3);
+
+            // var max = 28;
+            // var points = [];
+            // var tangents = [];
+
+            // for (var c = 0; c <= max; c++)
+            // {
+            //     var t = curve.getUtoTmapping(c / max);
+
+            //     points.push(curve.getPoint(t));
+            //     tangents.push(curve.getTangent(t));
+            // }
+
+            // var tempVec = new Phaser.Math.Vector2();
+
+            // var spark0 = this.add.particles('spark0');
+            // var spark1 = this.add.particles('spark1');
+
+            // for (var i = 0; i < points.length; i++)
+            // {
+            //     var p = points[i];
+
+            //     tempVec.copy(tangents[i]).normalizeRightHand().scale(-32).add(p);
+
+            //     var angle = Phaser.Math.RadToDeg(Phaser.Math.Angle.BetweenPoints(p, tempVec));
+
+            //     var particles = (i % 2 === 0) ? spark0 : spark1;
+
+            //     particles.createEmitter({
+            //         x: bomb.x,
+            //         y: bomb.y,
+            //         angle: angle,
+            //         speed: { min: -100, max: 500 },
+            //         gravityY: 200,
+            //         scale: { start: 0.4, end: 0.1 },
+            //         lifespan: 800,
+            //         blendMode: 'SCREEN'
+            //     });
+            // }
+
+
             this.gameOverScreen.visible = true;
             this.continueButton.visible = true;
 
             this.physics.pause();
             player.setTint(0xff0000);
-            player.anims.play('turn');       
+            player.anims.play('turn');    
+            
+            
         }
-
+  
+        //GameOver
         createGameOverMessage = () => {
             this.gameOverScreen = this.add.text(400,300, 'Game Over', {fontSize: '50px', fill: '#000'});
             this.gameOverScreen.setOrigin(0.5);
             this.gameOverScreen.visible = false;
         }
+        createGameOverMessage();
         
+        //Restart
         createRestartButton = (image) => {
             this.continueButton = this.add.image(400,300, image); 
             this.continueButton.y = 350;
@@ -178,14 +256,10 @@
             });
             this.continueButton.visible = false;
         }
-
-        
-        //GameOver
-        createGameOverMessage();
-        
-        //Restart
         createRestartButton('restartButton');
 
+   
+        
     }
        
     function update ()
@@ -219,6 +293,20 @@
             // player.anims.play('jump');
         } 
         
+        //Win Prize
+        createWinPrize = (param, param2) => {  
+        this.winPrize = this.add.image(400,300, param);
+        this.winPrize.setOrigin(0.5);
+        this.winPrize.visible = false
+        if(cursors.up.isDown) {
+            console.log("entrou");
+            this.physics.pause();
+            this.winPrize = this.add.text(900,700, 'Te amo <3', {fontSize: '100px', fill: '#000'});
+            this.winPrize.setOrigin(0.5);
+        }
+        this.winPrize.visible = false;
+    }
+        createWinPrize('winPrize');
     }
     </script>
 
