@@ -6,10 +6,12 @@
 </head>
 <body>
     <script>
+    const width = 1280;
+    const height = 720;
     var config = {
         type: Phaser.AUTO,
-        width: 1280,
-        height: 720,
+        width: width,
+        height: height,
         parent: null,
         // scale: {
         // mode: Phaser.Scale.FIT,
@@ -31,8 +33,7 @@
     
     var game = new Phaser.Game(config);
 
-    function preload ()
-    {
+    function preload (){
         this.load.image('sky', 'assets/ceuNeve.jpg');
         this.load.image('ground', 'assets/plataforma2.png');
         this.load.image('groundBig', 'assets/plataformabig.png');
@@ -45,20 +46,19 @@
         this.load.image('spark0', 'assets/particles/blue.png');
         this.load.image('spark1', 'assets/particles/red.png');
         this.load.spritesheet('dude', 
-            'assets/killua/Kimoon.png',
-            { frameWidth: 66.600, frameHeight: 50 }
+            'assets/killua/killua2.png',
+            { frameWidth: 60.5, frameHeight: 43 }
     );
     }
+
     let platforms, player, score = 0, scoreText, bombs, superSayajin = 0;
     function create ()
-    {
-
+    {   
         //Background
-        this.add.image(640, 360, 'sky');
-
+        let backgroundImage = this.add.image(640, 360, 'sky');
+        
         particles = this.add.particles('fire');    
-        particles2 = this.add.particles('spark0');
-         
+        particles2 = this.add.particles('spark0'); 
 
         //Platform
         platforms = this.physics.add.staticGroup();
@@ -80,7 +80,7 @@
 
         this.anims.create({
             key: 'left',
-            frames: this.anims.generateFrameNumbers('dude', { start: 9, end: 15 }),
+            frames: this.anims.generateFrameNumbers('dude', { start: 9, end: 16 }),
             frameRate: 10,
             repeat: -1
         });
@@ -156,6 +156,7 @@
                 bomb.setBounce(1);
                 bomb.setCollideWorldBounds(true);
                 bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
+                
 
             }
         }
@@ -164,9 +165,8 @@
 
         //Bombs
         bombs = this.physics.add.group();
-
+    
         this.physics.add.collider(bombs, platforms);
-
         this.physics.add.collider(player, bombs, hitBomb, null, this);
 
         function hitBomb (player, bomb){
@@ -242,14 +242,14 @@
             this.physics.pause();
             player.setTint(0xff0000);
             player.anims.play('turn');    
-            
-            
         }
   
         //GameOver
         createGameOverMessage = () => {
             this.gameOverScreen = this.add.text(400,300, 'Game Over', {fontSize: '50px', fill: '#000'});
             this.gameOverScreen.setOrigin(0.5);
+            this.gameOverScreen.x = width * 0.5;
+            this.gameOverScreen.y = height * 0.5;
             this.gameOverScreen.visible = false;
         }
         createGameOverMessage();
@@ -260,6 +260,8 @@
             this.continueButton.y = 350;
             this.continueButton.setScale(0.2);
             this.continueButton.setOrigin(0.5);
+            this.continueButton.x = width * 0.5;
+            this.continueButton.y = height * 0.6;
             this.continueButton.setInteractive();    
             this.continueButton.on('pointerdown', () => {
                 score = 0;
