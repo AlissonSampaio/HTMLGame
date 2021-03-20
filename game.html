@@ -71,10 +71,15 @@
 
         var music = this.sound.add('dafunk');
         var music2 = this.sound.add('generic');
+        var musicLove = this.sound.add('loveMusic');
 
+        music.play();
+
+            
+        if(music.hasEnded)
         music2.play();
-        console.log(music2.end);
 
+        //Particulas
         particles = this.add.particles('fire');    
         particles2 = this.add.particles('spark0');
          
@@ -94,7 +99,6 @@
         player = this.physics.add.sprite(100, 450, 'dude');
 
         player.setBounce(0.0);
-        // player.setScale(2);
         player.setCollideWorldBounds(true);
 
         this.anims.create({
@@ -149,6 +153,9 @@
 
             if(score >= 20) {
                 console.log("y");
+                music.stop();
+                music2.stop();
+                musicLove.play();
                 // this.winPrize.visible= true;
                 // let S = input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);    
                 // var vid = this.add.video(400, 300, 'video');
@@ -309,6 +316,8 @@
        
     function update ()
     {   
+
+
         let cursors = this.input.keyboard.createCursorKeys();    
 
         //Keyboard   
@@ -354,6 +363,7 @@
     }
         createWinPrize('winPrize');
     }
+
     </script>
 
 </body>
