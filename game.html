@@ -83,16 +83,10 @@
         var music2 = this.sound.add('generic');
         var musicLove = this.sound.add('loveMusic');
 
-<<<<<<< HEAD
-        music.play();
-
+        //music.play();
             
         if(music.hasEnded)
         music2.play();
-=======
-        //music2.play();
-        console.log(music2.end);
->>>>>>> be839a19dbf186897f84b7db347765a5ea24863a
 
         //Particulas
         particles = this.add.particles('fire');    
@@ -100,9 +94,7 @@
 
         //Platform
         platforms = this.physics.add.staticGroup();
-
         platforms.create(640, 750, 'groundBig').setScale(3).refreshBody();
-
         platforms.create(1080, 400, 'ground');
         platforms.create(100, 270, 'ground');
         platforms.create(750, 580, 'ground');
@@ -159,21 +151,30 @@
         this.physics.add.collider(stars, platforms);
         this.physics.add.overlap(player, stars, collectStar, null, this);
 
+        function hideEverything(){
+            backgroundImage.visible = false;
+            player.visible = false;
+            stars.children.iterate(function (child) {
+                child.visible = false;
+            });
+            platforms.children.iterate(function (child) {
+                child.visible = false;
+            });
+            scoreText.visible = false;
+        }
+
         function collectStar (player, star)
-        {
+        {   
+            hideEverything();
             star.disableBody(true, true);
             score += 10;
             scoreText.setText('pontos: ' + score);
 
-<<<<<<< HEAD
             if(score >= 20) {
                 console.log("y");
                 music.stop();
                 music2.stop();
-                musicLove.play();
-=======
-            if(score >= 20) {       
->>>>>>> be839a19dbf186897f84b7db347765a5ea24863a
+                //musicLove.play();
                 // this.winPrize.visible= true;
                 // let S = input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);    
                 // var vid = this.add.video(400, 300, 'video');
@@ -334,8 +335,6 @@
        
     function update ()
     {   
-
-
         let cursors = this.input.keyboard.createCursorKeys();    
         
         if(gameOver){
