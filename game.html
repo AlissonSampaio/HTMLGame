@@ -154,12 +154,15 @@
         function hideEverything(){
             backgroundImage.visible = false;
             player.visible = false;
+
             stars.children.iterate(function (child) {
                 child.visible = false;
             });
+
             platforms.children.iterate(function (child) {
                 child.visible = false;
             });
+
             scoreText.visible = false;
         }
 
