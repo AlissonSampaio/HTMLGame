@@ -61,6 +61,7 @@
         this.load.image('amor4', 'assets/amor/amor4.png');
         this.load.image('amor5', 'assets/amor/amor5.png');
         this.load.image('amor6', 'assets/amor/amor6.png');
+        this.load.image('terror', 'assets/terror.png');
         this.load.audio('dafunk', [
         'assets/audio/lofiRaca.mp3'
         ]);
@@ -69,6 +70,9 @@
         ]);
         this.load.audio('plateiaFeliz', [
         'assets/audio/plateiaFeliz.mp3'
+        ]);
+        this.load.audio('audioExorcista', [
+        'assets/audio/terrorAudio.mp3'
         ]);
         // this.load.video('video', 'assets/video/zap.mp4');
         this.load.spritesheet('dude', 
@@ -80,6 +84,9 @@
     let platforms, backgroundImage, player, myBomb, score = 0, scoreText, bombs, superSayajin = 0, emitter;
     function create ()
     {   
+        var music = this.sound.add('dafunk');
+        
+        music.play();
         //Background
         backgroundImage = this.add.image(640, 360, 'sky');
         var backgroundLove;
@@ -88,9 +95,7 @@
         //Music
         this.sound.pauseOnBlur = false;
 
-        var music = this.sound.add('dafunk');
         
-        music.play();
             
         //Particulas
         particles = this.add.particles('fire');    
@@ -367,7 +372,9 @@
             // this.recusaButton.y = height * 0.5;
             this.recusaButton.setInteractive();    
             this.recusaButton.on('pointerdown', () => {
-                console.log("CU");
+                var backgroundTerror = this.add.image(640, 360, 'terror');
+                var musicTerror = this.sound.add('audioExorcista');
+                musicTerror.play();
             });
             this.recusaButton.visible = true;
         }
