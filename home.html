@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser-arcade-physics.min.js"></script>
+    <title>Jogalisson</title>
+</head>
+<body>
+    <script>
+    const width = 1280;
+    const height = 720;
+    var config = {
+        type: Phaser.AUTO,
+        width: width,
+        height: height,
+        parent: null,
+        // scale: {
+        // mode: Phaser.Scale.FIT,
+        // autoCenter: Phaser.Scale.CENTER_BOTH
+        // },
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 1000 },
+                debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        },
+        
+    };
+    
+    var game = new Phaser.Game(config);
+    let gameOver = false; 
+
+    let steBombs = [
+        'assets/bomba_ste.png',
+        'assets/bomba_ste2.png',
+    ];
+
+    function preload (){
+        this.load.image('sky', 'assets/ceuNeve.jpg');
+        this.load.image('sky2', 'assets/ceuNeveBlur.jpg');
+        this.load.image('ground', 'assets/plataforma2.png');
+        this.load.image('groundBig', 'assets/plataformabig.png');
+        this.load.image('star', 'assets/star.png');
+        this.load.image('bomb', steBombs[1]);
+        this.load.image('gameOver', 'assets/game_over_screen.png');
+        this.load.image('restartButton', 'assets/RestartButton.png');
+        this.load.image('aceitaButton', 'assets/aceitaButton.png');
+        this.load.image('recusaButton', 'assets/recusaButton.png');
+        this.load.image('winPrize', 'assets/sky.png');
+        this.load.image('fire', 'assets/particles/muzzleflash3.png');
+        this.load.image('spark0', 'assets/particles/blue.png');
+        this.load.image('spark1', 'assets/particles/red.png');
+        this.load.image('amor1', 'assets/amor/amor1.png');
+        this.load.image('amor2', 'assets/amor/amor2.png');
+        this.load.image('amor3', 'assets/amor/amor3.png');
+        this.load.image('amor4', 'assets/amor/amor4.png');
+        this.load.image('amor5', 'assets/amor/amor5.png');
+        this.load.image('amor6', 'assets/amor/amor6.png');
+        this.load.image('terror', 'assets/terror.png');
+        this.load.audio('dafunk', [
+        'assets/audio/lofiRaca.mp3'
+        ]);
+        this.load.audio('loveMusic', [
+        'assets/audio/loveMusic.mp3'
+        ]);
+        this.load.audio('plateiaFeliz', [
+        'assets/audio/plateiaFeliz.mp3'
+        ]);
+        this.load.audio('audioExorcista', [
+        'assets/audio/terrorAudio.mp3'
+        ]);
+        // this.load.video('video', 'assets/video/zap.mp4');
+        this.load.spritesheet('dude', 
+            'assets/killua/kimoon.png',
+            { frameWidth: 66.600, frameHeight: 50 }
+    );
+    }
+
+    let platforms, backgroundImage, player, myBomb, score = 0, scoreText, bombs, superSayajin = 0, emitter;
+    function create ()
+    {   
+        var music = this.sound.add('dafunk');
+        
+        music.play();
+        //Background
+        backgroundImage = this.add.image(640, 360, 'sky');
+        var backgroundLove;
+        let blurImage = this.add.image(640, 360,'sky2');
+        blurImage.visible = false;
+        //Music
+        this.sound.pauseOnBlur = false;
+
+        
+            
+        //Particulas
+        particles = this.add.particles('fire');    
+        particles2 = this.add.particles('spark0'); 
+
+        //Platform
+        platforms = this.physics.add.staticGroup();
+        platforms.create(640, 750, 'groundBig').setScale(3).refreshBody();
+        platforms.create(1080, 400, 'ground');
+        platforms.create(100, 270, 'ground');
+        platforms.create(750, 580, 'ground');
+        platforms.create(350, 450, 'ground');
+        platforms.create(750, 220, 'ground');
+
+        //Player
+        player = this.physics.add.sprite(100, 450, 'dude');
+
+        player.setBounce(0.0);
+        player.setCollideWorldBounds(true);
+
+        this.anims.create({
+            key: 'left',
+            frames: this.anims.generateFrameNumbers('dude', { start: 8, end: 14 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'turn',
+            frames: [ { key: 'dude', frame: 7 } ],
+            frameRate: 20
+        });
+
+        // this.anims.create({
+        //     key: 'jump',
+        //     frames: [ { key: 'dude', frame: { start: 9 , end: 1 } } ],
+        //     frameRate: 1
+        // });
+
+        this.anims.create({
+            key: 'right',
+            frames: this.anims.generateFrameNumbers('dude', { start: 0 , end: 6 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.physics.add.collider(player, platforms);
+
+        //Stars
+        stars = this.physics.add.group({
+            key: 'star',
+            repeat: 4,
+            // setXY: { x: Phaser.Math.Between(0,1280), y: 0, stepX: Phaser.Math.Between(0,100) }
+        });
+
+        stars.children.iterate(function (child) {
+            child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+            child.x = Phaser.Math.Between(0,1280);
+            child.y = 0;
+        });
+
+        this.physics.add.collider(stars, platforms);
+        this.physics.add.overlap(player, stars, collectStar, null, this);
+
+        function hideEverything(){
+            backgroundImage.visible = false;
+            player.visible = false;
+
+            stars.children.iterate(function (child) {
+                child.visible = false;
+            });
+
+            platforms.children.iterate(function (child) {
+                child.visible = false;
+            });
+
+            bombs.children.iterate(function (child) {
+                child.visible = false;
+            });
+            
+            scoreText.visible = false;
+
+        }   
+
+        function collectStar (player, star)
+        {   
+            star.disableBody(true, true);
+            score += 10;
+            scoreText.setText('pontos: ' + score);
+            if(score >= 350) {
+                var musicLove = this.sound.add('loveMusic');
+                music.stop();
+                hideEverything();
+                this.physics.pause();
+                musicLove.play();
+                loveFunction(true);
+                // this.winPrize.visible= true;
+                // let S = input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);    
+                // var vid = this.add.video(400, 300, 'video');
+
+                // vid.play(true);
+                
+                // // Prevents video freeze when game is out of focus (i.e. user changes tab on the browser)
+                // vid.setPaused(false);
+                // if(S.isDown) {
+                //     console.log("entrou");
+                //     winPrize = this.add.text(400,300, 'Te amo <3', {fontSize: '100px', fill: '#000'});
+                //     winPrize.setOrigin(0.5);
+                //     // this.physics.pause();
+                //     }
+                }
+
+            if (stars.countActive(true) === 0)
+            {
+                emitter = particles2.createEmitter({
+                speed: 100,
+                scale: { start: superSayajin, end: 0 },
+                blendMode: 'ADD'
+                });
+                superSayajin += 0.01;
+                emitter.startFollow(player);
+                stars.children.iterate(function (child) {
+
+                    child.enableBody(true, Phaser.Math.Between(0,1280), 0, true, true);
+
+                });
+
+                var x = (player.x < 640) ? Phaser.Math.Between(640, 1280) : Phaser.Math.Between(0, 640);
+
+                myBomb = bombs.create(x, 10, 'bomb'); 
+                myBomb.setBounce(1);
+                myBomb.setCollideWorldBounds(true);
+                myBomb.setVelocity(Phaser.Math.Between(-200, 200), 20);   
+            }
+        }
+        //Score
+        scoreText = this.add.text(16, 16, 'pontos: 0', { fontSize: '32px', fill: 'white', fontSize:'50px' });
+
+        //Bombs
+        bombs = this.physics.add.group();
+    
+        this.physics.add.collider(bombs, platforms);
+        this.physics.add.collider(player, bombs, hitBomb, null, this);
+
+        function hitBomb (player, bomb){
+            // this.bomb.enableBody = false;
+            //explosion
+                myBomb.visible = false;
+                particles.createEmitter({
+                alpha: { start: 10, end: 0 },
+                scale: { start: 0.5, end: 10 },
+                //tint: { start: 0xff945e, end: 0xff945e },
+                speed: 10,
+                accelerationY: -20,
+                angle: { min: -85, max: -95 },
+                rotate: { min: 0, max: 360 },
+                lifespan: { min: 1000, max: 1100 },
+                blendMode: 'ADD',
+                frequency: 110,
+                maxParticles: 16,
+                x: bomb.x,
+                y: bomb.y
+            });    
+
+            music.stop();
+            this.physics.pause();
+            player.setTint(0xff0000);
+            player.anims.play('turn');  
+            player.visible = false;  
+            
+            this.gameOverScreen.visible = true;
+            this.continueButton.visible = true;
+            blurImage.visible = true;
+            gameOver = true;
+        }
+  
+        //GameOver
+        createGameOverMessage = () => {
+            this.gameOverScreen = this.add.image(400,300, 'gameOver'); 
+            this.gameOverScreen.setOrigin(0.5);
+            this.gameOverScreen.setScale(0.1); 
+            this.gameOverScreen.x = width * 0.5;
+            this.gameOverScreen.y = height * 0.4;
+            this.gameOverScreen.visible = false;
+        }
+        createGameOverMessage();
+        
+        //Restart
+        createRestartButton = (image) => {
+            this.continueButton = this.add.image(400,300, image); 
+            this.continueButton.y = 350;
+            this.continueButton.setScale(0.2); 
+            this.continueButton.setOrigin(0.5);
+            this.continueButton.x = width * 0.5;
+            this.continueButton.y = height * 0.5;
+            this.continueButton.setInteractive();    
+            this.continueButton.on('pointerdown', () => {
+                score = 0;
+                this.registry.destroy()
+                this.events.off();
+                this.scene.restart();
+            });
+            this.continueButton.visible = false;
+        }
+        createRestartButton('restartButton');
+
+        createAceitaButton = (image) => {
+            this.aceitaButton = this.add.image(450,330, image); 
+            this.aceitaButton.y = 350;
+            this.aceitaButton.setScale(0.2); 
+            this.aceitaButton.setOrigin(0.5);
+            // this.aceitaButton.x = width * 0.5;
+            // this.aceitaButton.y = height * 0.5;
+            this.aceitaButton.setInteractive();    
+            this.aceitaButton.on('pointerdown', () => {
+                var musicComemora = this.sound.add('plateiaFeliz');
+                musicComemora.play();
+                //fireworks
+            var p0 = new Phaser.Math.Vector2(200, 500);
+            var p1 = new Phaser.Math.Vector2(200, 200);
+            var p2 = new Phaser.Math.Vector2(600, 200);
+            var p3 = new Phaser.Math.Vector2(600, 500);
+
+            var curve = new Phaser.Curves.CubicBezier(p0, p1, p2, p3);
+
+            var max = 28;
+            var points = [];
+            var tangents = [];
+
+            for (var c = 0; c <= max; c++)
+            {
+                var t = curve.getUtoTmapping(c / max);
+
+                points.push(curve.getPoint(t));
+                tangents.push(curve.getTangent(t));
+            }
+
+            var tempVec = new Phaser.Math.Vector2();
+
+            var spark0 = this.add.particles('spark0');
+            var spark1 = this.add.particles('spark1');
+
+            for (var i = 0; i < points.length; i++)
+            {
+                var p = points[i];
+
+                tempVec.copy(tangents[i]).normalizeRightHand().scale(-32).add(p);
+
+                var angle = Phaser.Math.RadToDeg(Phaser.Math.Angle.BetweenPoints(p, tempVec));
+
+                var particles = (i % 2 === 0) ? spark0 : spark1;
+
+                particles.createEmitter({
+                    x: 650,
+                    y: 720,
+                    angle: angle,
+                    speed: { min: -100, max: 1400 },
+                    gravityY: 200,
+                    scale: { start: 0.4, end: 0.05 },
+                    lifespan: 800,
+                    blendMode: 'SCREEN'
+                });
+            }
+            },
+            );
+            this.aceitaButton.visible = true;
+        }
+        createRecusaButton = (image) => {
+            this.recusaButton = this.add.image(850,330, image); 
+            this.recusaButton.y = 350;
+            this.recusaButton.setScale(0.2); 
+            this.recusaButton.setOrigin(0.5);
+            // this.recusaButton.x = width * 0.5;
+            // this.recusaButton.y = height * 0.5;
+            this.recusaButton.setInteractive();    
+            this.recusaButton.on('pointerdown', () => {
+                var backgroundTerror = this.add.image(640, 360, 'terror');
+                var musicTerror = this.sound.add('audioExorcista');
+                musicTerror.play();
+            });
+            this.recusaButton.visible = true;
+        }
+
+        loveFunction = () => {
+            let backgroundLove,backgroundLove2,backgroundLove3,backgroundLove4,backgroundLove5,backgroundLove6, text, contador = 0, bigText;
+            let bigText2, bigText3, bigText4, bigText5, bigText6, bigText7;
+            
+            backgroundLove = this.add.image(640, 360, 'amor1');
+            backgroundLove2 = this.add.image(640, 500, 'amor2');
+            backgroundLove3 = this.add.image(640, 360, 'amor3');
+            backgroundLove4 = this.add.image(640, 550, 'amor4');
+            backgroundLove5 = this.add.image(640, 550, 'amor5');
+            backgroundLove6 = this.add.image(640, 550, 'amor6');
+            bigTextI = this.add.text(150,230, 'PARABÉNS MEU AMOR,', { fontSize: '80px', fill: 'white'} );
+            bigTextI.setTint(0xff00ff, 0xffff00, 0x0000ff, 0xff0000);
+            bigTextII = this.add.text(150,310, 'FINALMENTE!!!!!!! ', { fontSize: '80px', fill: 'white'} );
+            bigTextII.setTint(0xff00ff, 0xffff00, 0x0000ff, 0xff0000);
+            bigTextIII = this.add.text(150,400, '😍🥰😘😍🥰😘 ', { fontSize: '80px', fill: 'white'} );
+            bigText2 = this.add.text(0,680, 'Então, foi mal parar teu jogo só pra falar um negócio não tãaaaao usual', { fontSize: '30px', fill: 'yellow', backgroundColor: 'black'} );
+            bigText3 = this.add.text(0,680, 'É que eu queria te dizer algumas coisas...', { fontSize: '40px', fill: 'yellow', backgroundColor: 'black'} );
+            bigText4 = this.add.text(0,680, 'Primeiro de tudo, gostaria de te informar que você é o amor da minha vida', { fontSize: '27px', fill: 'yellow', backgroundColor: 'black'} );
+            bigText5 = this.add.text(0,680, 'Na verdade, te relembrar ne, coisa que faço todo dia.', { fontSize: '35px', fill: 'yellow', backgroundColor: 'black'} );
+            bigText6 = this.add.text(0,680, 'Segundamente, queria te agradecer por existir, nunca imaginei que encontraria alguém tão perfeita pra mim', { fontSize: '20px', fill: 'yellow', backgroundColor: 'black'} );
+            bigText7 = this.add.text(0,100, 'Você é como um navio extremamente seguro num mar absurdamente caótico.', { fontSize: '30px', fill: 'yellow', backgroundColor: 'black'} );
+            bigText8 = this.add.text(0,680, 'Por isso, só tem uma pergunta que eu posso te fazer...', { fontSize: '30px', fill: 'yellow', backgroundColor: 'black'} );
+            bigText9 = this.add.text(60,230, 'Quer namorar comigo?', { fontSize: '100px', fill: 'yellow', backgroundColor: 'black'} );
+
+            backgroundLove.visible = false;
+            backgroundLove2.visible = false;
+            backgroundLove3.visible = false;
+            backgroundLove4.visible = false;
+            backgroundLove5.visible = false;
+            backgroundLove6.visible = false;
+            // text.visible = false;
+            bigTextI.visible = false;
+            bigTextII.visible = false;
+            bigTextIII.visible = false;
+            bigText2.visible = false;
+            bigText3.visible = false;
+            bigText4.visible = false;
+            bigText5.visible = false;
+            bigText6.visible = false;
+            bigText7.visible = false;
+            bigText8.visible = false;
+            bigText9.visible = false;
+
+            setInterval(function(){
+                contador++;
+                if(contador== 1){
+                   bigTextI.visible = true;
+                   bigTextII.visible = true;
+                   bigTextIII.visible = true;
+                }else if(contador == 2){
+                    bigTextI.visible = false;
+                    bigTextII.visible = false;
+                    bigTextIII.visible = false;
+                    bigText2.visible = true;
+                    backgroundLove.visible = true;
+                }else if(contador == 3){
+                    bigText2.visible = false;
+                    bigText3.visible = true;
+                    backgroundLove.visible = false;
+                    backgroundLove2.visible = true;
+                    text.visible = true;
+                }
+                else if(contador == 4){
+                    bigText3.visible = false;
+                    bigText4.visible = true;
+                    backgroundLove.visible = false;
+                    backgroundLove2.visible = false;
+                    backgroundLove3.visible = true;
+                }else if(contador == 5){
+                    bigText4.visible = false;
+                    bigText5.visible = true;
+                    backgroundLove.visible = false;
+                    backgroundLove2.visible = false;
+                    backgroundLove3.visible = false; 
+                    backgroundLove4.visible = true;
+                }
+                else if(contador == 6){
+                    bigText5.visible = false;
+                    bigText6.visible = true;
+                    backgroundLove.visible = false;
+                    backgroundLove2.visible = false;
+                    backgroundLove3.visible = false; 
+                    backgroundLove4.visible = false;
+                    backgroundLove5.visible = true;
+                }
+                else if(contador == 7){
+                    bigText6.visible = false;
+                    bigText7.visible = true;
+                    bigText8.visible = true;
+                    backgroundLove.visible = false;
+                    backgroundLove2.visible = false;
+                    backgroundLove3.visible = false; 
+                    backgroundLove4.visible = false;
+                    backgroundLove5.visible = false;
+                    backgroundLove6.visible = true;
+                }
+                else if(contador == 8){
+                    bigText7.visible = false;
+                    bigText8.visible = false;
+                    bigText9.visible = true;
+                    backgroundLove6.visible = false;
+                    createAceitaButton('aceitaButton');
+                    createRecusaButton('recusaButton');
+                }    
+            }, 7000);
+            
+        }
+        
+    }
+       
+    function update ()
+    {           
+        let cursors = this.input.keyboard.createCursorKeys();   
+
+        //Keyboard   
+        if (cursors.left.isDown)
+        {
+            player.setVelocityX(-400);
+
+            player.anims.play('left', true);
+        }
+        else if (cursors.right.isDown)
+        {
+            player.setVelocityX(400);
+
+            player.anims.play('right', true);
+        }
+        else
+        {
+            player.setVelocityX(0);
+
+            player.anims.play('turn');
+        }
+
+        if (cursors.space.isDown && player.body.touching.down)
+        {   
+            player.setVelocityY(-650);
+
+            // player.anims.play('jump');
+        } 
+
+    }
+
+    </script>
+
+</body>
+</html>
